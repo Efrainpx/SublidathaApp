@@ -1,13 +1,78 @@
 // routes/productos.routes.js
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const path = require("path");
 const { Producto } = require("../models");
-
 // Importar middlewares de autenticación y autorización
 const authenticateToken = require("../middlewares/auth");
 const authorizeRole = require("../middlewares/authorize");
 
-// Endpoint para listar todos los productos (público)
+// Multer storage para imágenes de productos
+const prodStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const name = `producto_${Date.now()}`;
+    cb(null, name + ext);
+  },
+});
+const uploadProductImage = multer({ storage: prodStorage });
+
+//Endpoint para crear producto con imagen
+router.post(
+  "/",
+  authenticateToken,
+  uploadProductImage.single("imagen"),
+  async (req, res) => {
+    try {
+      const { nombre, descripcion, precio, stock } = req.body;
+      const imagenUrl = req.file
+        ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+        : null;
+
+      const prod = await Producto.create({
+        nombre,
+        descripcion,
+        precio,
+        stock,
+        imagen: imagenUrl,
+      });
+      res.status(201).json(prod);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Error al crear producto" });
+    }
+  }
+);
+
+//Endpoint para actualizar sólo la imagen de un producto
+router.put(
+  "/:id/imagen",
+  authenticateToken,
+  uploadProductImage.single("imagen"),
+  async (req, res) => {
+    try {
+      const prod = await Producto.findByPk(req.params.id);
+      if (!prod)
+        return res.status(404).json({ message: "Producto no encontrado" });
+
+      prod.imagen = `${req.protocol}://${req.get("host")}/uploads/${
+        req.file.filename
+      }`;
+      await prod.save();
+      res.json({
+        message: "Imagen de producto actualizada",
+        imagen: prod.imagen,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Error al actualizar imagen" });
+    }
+  }
+);
+
+// Endpoint para listar todos los productos
 router.get("/", async (req, res) => {
   try {
     const productos = await Producto.findAll();
@@ -18,16 +83,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Endpoint para obtener los detalles de un producto por su ID (público)
+// Endpoint para obtener los detalles de un producto por su ID
 router.get("/:id", async (req, res) => {
   try {
-    const producto = await Producto.findByPk(req.params.id);
-    if (!producto) {
+    const prod = await Producto.findByPk(req.params.id);
+    if (!prod)
       return res.status(404).json({ message: "Producto no encontrado" });
-    }
-    return res.json(producto);
-  } catch (error) {
-    console.error("Error al obtener producto:", error);
+    return res.json(prod);
+  } catch (err) {
+    console.error("Error al obtener producto:", err);
     return res.status(500).json({ message: "Error en el servidor" });
   }
 });
@@ -41,12 +105,10 @@ router.post(
     try {
       const { nombre, descripcion, precio, stock, imagen } = req.body;
       if (!nombre || precio === undefined || stock === undefined) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Faltan datos requeridos. Se requiere al menos nombre, precio y stock.",
-          });
+        return res.status(400).json({
+          message:
+            "Faltan datos requeridos. Se requiere al menos nombre, precio y stock.",
+        });
       }
       const nuevoProducto = await Producto.create({
         nombre,

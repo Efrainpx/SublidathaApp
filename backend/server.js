@@ -1,35 +1,30 @@
+require("dotenv").config();
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
+const { sequelize } = require("./models");
+
 const app = express();
 const port = process.env.PORT || 3000;
-const { sequelize } = require("./models"); // Importamos la conexión y los modelos
-require("dotenv").config();
 
+// Habilita CORS y JSON
 app.use(cors());
-
 app.use(express.json());
 
-// Rutas de la API
+// 1) Sirve archivos estáticos de la carpeta uploads
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// 2) Rutas
 const usuariosRoutes = require("./routes/usuarios.routes");
 const productosRoutes = require("./routes/productos.routes");
 const pedidosRoutes = require("./routes/pedidos.routes");
 
-// Uso de las rutas
 app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/productos", productosRoutes);
 app.use("/api/pedidos", pedidosRoutes);
 
-app.get("/", (req, res) => {
-  res.send("API de SublidathaApp funcionando");
-});
+app.get("/", (req, res) => res.send("API SublidathaApp OK"));
 
-// Sincronizamos la base de datos y arrancamos el servidor
-sequelize
-  .sync()
-  .then(() => {
-    console.log("Base de datos sincronizada");
-    app.listen(port, () => {
-      console.log(`Servidor corriendo en el puerto ${port}`);
-    });
-  })
-  .catch((err) => console.error("Error al sincronizar la base de datos:", err));
+sequelize.sync().then(() => {
+  app.listen(port, () => console.log(`Servidor en puerto ${port}`));
+});

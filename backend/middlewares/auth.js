@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET || "tu_clave_secreta";
 
 function authenticateToken(req, res, next) {
-  // Se espera que el token se encuentre en el header 'Authorization' en formato "Bearer <token>"
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 

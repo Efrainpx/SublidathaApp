@@ -27,7 +27,7 @@ const DetallePedido = sequelize.define(
   {
     tableName: "DetallePedido",
     timestamps: false,
-    // Desactivar la creación automática de la columna "id"
+    //Recordatorio: Esto evita la creación automática de la columna "id"
     id: false,
   }
 );

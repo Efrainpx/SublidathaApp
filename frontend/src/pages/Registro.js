@@ -1,6 +1,5 @@
-// src/pages/Registro.js
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
 
 const Registro = () => {
@@ -12,107 +11,111 @@ const Registro = () => {
     password: "",
     direccion: "",
     telefono: "",
-    // El rol por defecto es "cliente". Si se requiere otro, se podría cambiar desde aquí o en el backend.
     rol: "cliente",
   });
   const [mensaje, setMensaje] = useState("");
 
-  // Manejador de cambios para cada campo
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Manejo del envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const response = await api.post("/usuarios/register", formData);
       setMensaje(response.data.message);
-      // Después de un registro exitoso, redirige a la página de Login
       navigate("/login");
     } catch (error) {
-      console.error(
-        "Error en registro:",
-        error.response ? error.response.data : error
-      );
-      setMensaje(error.response?.data?.message || "Error en el registro.");
+      setMensaje(error.response?.data?.message || "Error al registrarse.");
     }
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h2>Registro</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Nombre:</label>
-          <input
-            type="text"
-            name="nombre"
-            placeholder="Tu nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Apellido:</label>
-          <input
-            type="text"
-            name="apellido"
-            placeholder="Tu apellido"
-            value={formData.apellido}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            placeholder="Tu email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Contraseña:</label>
-          <input
-            type="password"
-            name="password"
-            placeholder="Tu contraseña"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Dirección:</label>
-          <input
-            type="text"
-            name="direccion"
-            placeholder="Tu dirección"
-            value={formData.direccion}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label>Teléfono:</label>
-          <input
-            type="text"
-            name="telefono"
-            placeholder="Tu teléfono"
-            value={formData.telefono}
-            onChange={handleChange}
-          />
-        </div>
-        <button type="submit">Registrarse</button>
-      </form>
-      {mensaje && <p>{mensaje}</p>}
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="max-w-lg w-full bg-white p-8 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold text-center mb-6">Registro</h2>
+        {mensaje && <p className="text-center mb-4 text-red-500">{mensaje}</p>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-700 mb-1">Nombre</label>
+              <input
+                type="text"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700 mb-1">Apellido</label>
+              <input
+                type="text"
+                name="apellido"
+                value={formData.apellido}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-1">Contraseña</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-1">Dirección</label>
+            <input
+              type="text"
+              name="direccion"
+              value={formData.direccion}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-1">Teléfono</label>
+            <input
+              type="text"
+              name="telefono"
+              value={formData.telefono}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition"
+          >
+            Registrarse
+          </button>
+        </form>
+        <p className="mt-4 text-center text-gray-600">
+          ¿Ya tienes cuenta?{" "}
+          <Link to="/login" className="text-blue-600 hover:underline">
+            Inicia Sesión
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };

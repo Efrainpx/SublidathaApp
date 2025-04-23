@@ -26,6 +26,10 @@ const Usuario = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    profileImage: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     direccion: {
       type: DataTypes.STRING,
     },

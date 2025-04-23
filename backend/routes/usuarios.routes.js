@@ -1,9 +1,49 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const path = require("path");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { Usuario } = require("../models");
 const authenticateToken = require("../middlewares/auth");
+const { Usuario } = require("../models");
+
+// Multer storage para avatars
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `avatar_${req.user.usuarioID}${ext}`);
+  },
+});
+const uploadAvatar = multer({ storage: avatarStorage });
+
+//Endpoint para subir avatar
+router.post(
+  "/me/avatar",
+  authenticateToken,
+  uploadAvatar.single("avatar"),
+  async (req, res) => {
+    try {
+      const usuario = await Usuario.findByPk(req.user.usuarioID);
+      if (!usuario)
+        return res.status(404).json({ message: "Usuario no encontrado" });
+
+      // Construye la URL pública
+      usuario.profileImage = `${req.protocol}://${req.get("host")}/uploads/${
+        req.file.filename
+      }`;
+      await usuario.save();
+
+      res.json({
+        message: "Avatar actualizado",
+        profileImage: usuario.profileImage,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Error al subir avatar" });
+    }
+  }
+);
 
 // Endpoint para registrar un nuevo usuario
 router.post("/register", async (req, res) => {
@@ -88,6 +128,34 @@ router.get("/me", authenticateToken, async (req, res) => {
   } catch (err) {
     console.error("Error al obtener perfil:", err);
     return res.status(500).json({ message: "Error en el servidor" });
+  }
+});
+
+//Actualizar datos del Usuario
+router.put("/me", authenticateToken, async (req, res) => {
+  try {
+    const usuario = await Usuario.findByPk(req.user.usuarioID);
+    if (!usuario)
+      return res.status(404).json({ message: "Usuario no encontrado" });
+
+    const { nombre, apellido, email, password, direccion, telefono } = req.body;
+
+    if (nombre !== undefined) usuario.nombre = nombre;
+    if (apellido !== undefined) usuario.apellido = apellido;
+    if (email !== undefined) usuario.email = email;
+    if (direccion !== undefined) usuario.direccion = direccion;
+    if (telefono !== undefined) usuario.telefono = telefono;
+    if (password !== undefined && password.trim() !== "") {
+      const salt = await bcrypt.genSalt(10);
+      usuario.password = await bcrypt.hash(password, salt);
+    }
+
+    await usuario.save();
+    const { password: _, ...sinPass } = usuario.toJSON();
+    res.json(sinPass);
+  } catch (err) {
+    console.error("Error al actualizar perfil:", err);
+    res.status(500).json({ message: "Error al actualizar perfil" });
   }
 });
 

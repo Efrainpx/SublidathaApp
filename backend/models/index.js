@@ -1,18 +1,19 @@
+// backend/models/index.js
 const sequelize = require("../config/database");
 const Usuario = require("./Usuario");
 const Producto = require("./Producto");
 const Pedido = require("./Pedido");
 const DetallePedido = require("./DetallePedido");
 
-// Asociación: Un Usuario tiene muchos Pedidos
+// 1) Usuario ↔ Pedido (sin alias obligatorio)
 Usuario.hasMany(Pedido, { foreignKey: "usuarioID" });
 Pedido.belongsTo(Usuario, { foreignKey: "usuarioID" });
 
-// Asociación: Un Pedido tiene muchos DetallePedido
-Pedido.hasMany(DetallePedido, { foreignKey: "pedidoID" });
+// 2) Pedido ↔ DetallePedido **con** alias
+Pedido.hasMany(DetallePedido, { foreignKey: "pedidoID", as: "DetallePedidos" });
 DetallePedido.belongsTo(Pedido, { foreignKey: "pedidoID" });
 
-// Asociación: Un Producto tiene muchos DetallePedido
+// 3) Producto ↔ DetallePedido (sin alias obligatorio)
 Producto.hasMany(DetallePedido, { foreignKey: "productoID" });
 DetallePedido.belongsTo(Producto, { foreignKey: "productoID" });
 

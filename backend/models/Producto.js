@@ -26,6 +26,7 @@ const Producto = sequelize.define(
     },
     imagen: {
       type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

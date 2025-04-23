@@ -4,8 +4,7 @@ const { Pedido, DetallePedido, Producto } = require("../models");
 const authenticateToken = require("../middlewares/auth");
 const authorizeRole = require("../middlewares/authorize");
 
-// 1. Crear un pedido (El usuario autenticado crea su pedido)
-// Nota: En vez de enviar usuarioID en el body, utilizamos el valor proveniente del token (req.user)
+// Crear un pedido (El usuario autenticado crea su pedido)
 router.post("/", authenticateToken, async (req, res) => {
   try {
     const { detalles } = req.body;
@@ -47,47 +46,41 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 });
 
-// 2. Listar pedidos
+// Listar pedidos
 // Si el usuario es cliente, se listan solo sus pedidos; si es administrador, se listan todos.
 router.get("/", authenticateToken, async (req, res) => {
   try {
-    const { rol, usuarioID } = req.user;
-    let pedidos;
-    if (rol === "cliente") {
-      pedidos = await Pedido.findAll({
-        where: { usuarioID },
-        include: [
-          {
-            model: DetallePedido,
-            include: [Producto],
-          },
-        ],
-      });
-    } else {
-      pedidos = await Pedido.findAll({
-        include: [
-          {
-            model: DetallePedido,
-            include: [Producto],
-          },
-        ],
-      });
-    }
-    return res.json(pedidos);
-  } catch (error) {
-    console.error("Error al listar pedidos:", error);
-    return res.status(500).json({ message: "Error en el servidor" });
+    // Los admins ven todos, los clientes sólo sus propios pedidos
+    const where =
+      req.user.rol === "administrador" ? {} : { usuarioID: req.user.usuarioID };
+
+    const pedidos = await Pedido.findAll({
+      where,
+      include: [
+        {
+          model: DetallePedido,
+          as: "DetallePedidos",
+          include: [{ model: Producto }],
+        },
+      ],
+    });
+
+    res.json(pedidos);
+  } catch (err) {
+    console.error("Error al listar pedidos:", err);
+    res.status(500).json({ message: "Error al listar pedidos" });
   }
 });
 
-// 3. Obtener los detalles de un pedido específico
+// Obtener los detalles de un pedido específico
 router.get("/:id", authenticateToken, async (req, res) => {
   try {
     const pedido = await Pedido.findByPk(req.params.id, {
       include: [
         {
           model: DetallePedido,
-          include: [Producto],
+          as: "DetallePedidos",
+          include: [{ model: Producto }],
         },
       ],
     });
@@ -105,7 +98,7 @@ router.get("/:id", authenticateToken, async (req, res) => {
   }
 });
 
-// 4. Actualizar el estado de un pedido (solo para administradores)
+// Actualizar el estado de un pedido (solo para administradores)
 router.put(
   "/:id",
   authenticateToken,
