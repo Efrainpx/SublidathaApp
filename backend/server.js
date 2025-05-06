@@ -18,10 +18,12 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const usuariosRoutes = require("./routes/usuarios.routes");
 const productosRoutes = require("./routes/productos.routes");
 const pedidosRoutes = require("./routes/pedidos.routes");
+const pagosRoutes = require("./routes/pagos.routes");
 
 app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/productos", productosRoutes);
 app.use("/api/pedidos", pedidosRoutes);
+app.use("/api/pagos", pagosRoutes);
 
 app.get("/", (req, res) => res.send("API SublidathaApp OK"));
 

@@ -1,8 +1,11 @@
+// src/pages/Carrito.js
 import React, { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
 import { FiPlus, FiMinus } from "react-icons/fi";
 
 const Carrito = () => {
+  const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity, clearCart } =
     useContext(CartContext);
 
@@ -88,7 +91,7 @@ const Carrito = () => {
                 Vaciar Carrito
               </button>
               <button
-                onClick={() => alert("Aquí iría el flujo de pago (sandbox)")}
+                onClick={() => navigate("/checkout")}
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
               >
                 Proceder al Pago

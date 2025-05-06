@@ -131,7 +131,7 @@ router.get("/me", authenticateToken, async (req, res) => {
   }
 });
 
-//Actualizar datos del Usuario
+//Endpoint para actualizar datos del Usuario
 router.put("/me", authenticateToken, async (req, res) => {
   try {
     const usuario = await Usuario.findByPk(req.user.usuarioID);

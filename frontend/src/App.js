@@ -12,6 +12,7 @@ import Perfil from "./pages/Perfil";
 import HistorialPedidos from "./pages/HistorialPedidos";
 import AdminProductos from "./pages/AdminProductos";
 import AdminPedidos from "./pages/AdminPedidos";
+import Checkout from "./pages/Checkout";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/historial-pedidos" element={<HistorialPedidos />} />
           <Route path="/admin/productos" element={<AdminProductos />} />
           <Route path="/admin/pedidos" element={<AdminPedidos />} />
+          <Route path="/checkout" element={<Checkout />} />
         </Routes>
       </div>
     </Router>

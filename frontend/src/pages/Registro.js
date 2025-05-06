@@ -33,7 +33,7 @@ const Registro = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-lg w-full bg-white p-8 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold text-center mb-6">Registro</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">Crea una cuenta</h2>
         {mensaje && <p className="text-center mb-4 text-red-500">{mensaje}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

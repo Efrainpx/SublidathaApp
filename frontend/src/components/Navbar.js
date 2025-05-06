@@ -71,14 +71,14 @@ const Navbar = () => {
                 className="block md:inline-block mt-2 md:mt-0 md:ml-6 text-white hover:text-blue-200 transition"
                 onClick={() => setMenuOpen(false)}
               >
-                Admin Productos
+                Administrar Productos
               </Link>
               <Link
                 to="/admin/pedidos"
                 className="block md:inline-block mt-2 md:mt-0 md:ml-6 text-white hover:text-blue-200 transition"
                 onClick={() => setMenuOpen(false)}
               >
-                Admin Pedidos
+                Administrar Pedidos
               </Link>
             </>
           )}
@@ -123,14 +123,14 @@ const Navbar = () => {
                 className="block md:inline-block mt-2 md:mt-0 md:ml-6 text-white hover:text-blue-200 transition"
                 onClick={() => setMenuOpen(false)}
               >
-                Login
+                Iniciar Sesión
               </Link>
               <Link
                 to="/registro"
                 className="block md:inline-block mt-2 md:mt-0 md:ml-6 text-white hover:text-blue-200 transition"
                 onClick={() => setMenuOpen(false)}
               >
-                Registro
+                Registrarse
               </Link>
             </>
           )}
