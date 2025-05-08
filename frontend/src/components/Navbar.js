@@ -80,6 +80,13 @@ const Navbar = () => {
               >
                 Administrar Pedidos
               </Link>
+              <Link
+                to="/admin/dashboard"
+                className="block md:inline-block mt-2 md:mt-0 md:ml-6 text-white hover:text-blue-200 transition"
+                onClick={() => setMenuOpen(false)}
+              >
+                Panel de Ventas
+              </Link>
             </>
           )}
 
@@ -98,7 +105,7 @@ const Navbar = () => {
                 className="block md:inline-block mt-2 md:mt-0 md:ml-6 text-white hover:text-blue-200 transition"
                 onClick={() => setMenuOpen(false)}
               >
-                Mis Pedidos
+                Historial de Pedidos
               </Link>
 
               <Link

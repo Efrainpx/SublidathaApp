@@ -32,11 +32,14 @@ const AdminProductos = () => {
     stock: "",
   });
   const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState("");
 
   // Estados edición inline
   const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({ nombre: "", precio: "" });
+  const [editForm, setEditForm] = useState({
+    nombre: "",
+    precio: "",
+    stock: "",
+  });
 
   // Carga inicial de productos
   useEffect(() => {
@@ -55,17 +58,6 @@ const AdminProductos = () => {
   }, []);
 
   // —— CREACIÓN —— //
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const onFileChangeNew = (e) => {
-    const f = e.target.files[0];
-    if (!f) return;
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
-  };
-
   const handleAdd = async (e) => {
     e.preventDefault();
     setError("");
@@ -86,7 +78,6 @@ const AdminProductos = () => {
       // reset
       setForm({ nombre: "", descripcion: "", precio: "", stock: "" });
       setFile(null);
-      setPreview("");
       // recarga
       const { data } = await api.get("/productos", {
         headers: { Authorization: `Bearer ${token}` },
@@ -124,29 +115,35 @@ const AdminProductos = () => {
   // —— EDICIÓN INLINE —— //
   const handleEdit = (prod) => {
     setEditingId(prod.productoID);
-    setEditForm({ nombre: prod.nombre, precio: prod.precio });
+    setEditForm({
+      nombre: prod.nombre,
+      precio: prod.precio,
+      stock: prod.stock,
+    });
     setError("");
   };
   const handleCancel = () => {
     setEditingId(null);
-    setEditForm({ nombre: "", precio: "" });
+    setEditForm({ nombre: "", precio: "", stock: "" });
     setError("");
   };
   const handleSave = async (id) => {
-    if (!editForm.nombre.trim() || isNaN(Number(editForm.precio))) {
-      setError("Nombre no vacío y precio numérico");
+    const { nombre, precio, stock } = editForm;
+    if (!nombre.trim() || isNaN(Number(precio)) || isNaN(Number(stock))) {
+      setError("Nombre no vacío, precio y stock numéricos");
       return;
     }
     setError("");
     try {
       const { data } = await api.put(
         `/productos/${id}`,
-        { nombre: editForm.nombre, precio: Number(editForm.precio) },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          nombre,
+          precio: Number(precio),
+          stock: Number(stock),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       setProductos((prev) =>
@@ -191,9 +188,11 @@ const AdminProductos = () => {
               type="text"
               name="nombre"
               value={form.nombre}
-              onChange={handleChange}
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
               required
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-400"
             />
           </div>
           <div>
@@ -201,8 +200,10 @@ const AdminProductos = () => {
             <textarea
               name="descripcion"
               value={form.descripcion}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              onChange={(e) =>
+                setForm({ ...form, [e.target.name]: e.target.value })
+              }
+              className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-400"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -213,9 +214,11 @@ const AdminProductos = () => {
                 name="precio"
                 step="0.01"
                 value={form.precio}
-                onChange={handleChange}
+                onChange={(e) =>
+                  setForm({ ...form, [e.target.name]: e.target.value })
+                }
                 required
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-400"
               />
             </div>
             <div>
@@ -224,9 +227,11 @@ const AdminProductos = () => {
                 type="number"
                 name="stock"
                 value={form.stock}
-                onChange={handleChange}
+                onChange={(e) =>
+                  setForm({ ...form, [e.target.name]: e.target.value })
+                }
                 required
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-400"
               />
             </div>
           </div>
@@ -238,22 +243,15 @@ const AdminProductos = () => {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={onFileChangeNew}
+                  onChange={(e) => setFile(e.target.files[0])}
                   className="hidden"
                 />
               </label>
-              {preview && (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="w-16 h-16 object-cover rounded"
-                />
-              )}
             </div>
           </div>
           <button
             type="submit"
-            className="w-full bg-green-600 text-white font-semibold px-4 py-2 rounded hover:bg-green-700 transition"
+            className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
           >
             Agregar Producto
           </button>
@@ -287,7 +285,7 @@ const AdminProductos = () => {
                     onChange={(e) =>
                       setEditForm({ ...editForm, nombre: e.target.value })
                     }
-                    className="border p-1 rounded w-32"
+                    className="border p-1 rounded w-24"
                   />
                   <input
                     type="number"
@@ -296,7 +294,16 @@ const AdminProductos = () => {
                     onChange={(e) =>
                       setEditForm({ ...editForm, precio: e.target.value })
                     }
-                    className="border p-1 rounded w-24"
+                    className="border p-1 rounded w-20"
+                  />
+                  <input
+                    type="number"
+                    step="1"
+                    value={editForm.stock}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, stock: e.target.value })
+                    }
+                    className="border p-1 rounded w-20"
                   />
                   <button
                     type="button"
@@ -328,7 +335,9 @@ const AdminProductos = () => {
                 <>
                   <span className="flex-1">
                     <p className="font-medium">{p.nombre}</p>
-                    <p className="text-gray-600">${p.precio}</p>
+                    <p className="text-gray-600">
+                      ${p.precio} – Stock: {p.stock}
+                    </p>
                   </span>
                   <button
                     type="button"

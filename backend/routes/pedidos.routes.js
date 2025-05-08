@@ -1,39 +1,67 @@
+// backend/routes/pedidos.routes.js
 const express = require("express");
 const router = express.Router();
-const { Pedido, DetallePedido, Producto } = require("../models");
+const {
+  Pedido,
+  DetallePedido,
+  Producto,
+  sequelize, // importamos la instancia para transacciones
+} = require("../models");
 const authenticateToken = require("../middlewares/auth");
 const authorizeRole = require("../middlewares/authorize");
 
 // Crear un pedido (El usuario autenticado crea su pedido)
 router.post("/", authenticateToken, async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { detalles } = req.body;
     if (!detalles || !Array.isArray(detalles) || detalles.length === 0) {
+      await t.rollback();
       return res
         .status(400)
         .json({ message: "Se requieren detalles del pedido." });
     }
-    const usuarioID = req.user.usuarioID;
-    // Crear el pedido con el usuario autenticado
-    const nuevoPedido = await Pedido.create({ usuarioID });
 
-    // Crear cada uno de los detalles del pedido
-    const detallesCreados = await Promise.all(
-      detalles.map(async (detalle) => {
-        const { productoID, cantidad, precioUnitario } = detalle;
-        // Verificar que el producto exista
-        const producto = await Producto.findByPk(productoID);
-        if (!producto) {
-          throw new Error(`Producto con ID ${productoID} no existe.`);
-        }
-        return await DetallePedido.create({
+    const usuarioID = req.user.usuarioID;
+
+    // 1) Crear el pedido
+    const nuevoPedido = await Pedido.create({ usuarioID }, { transaction: t });
+
+    // 2) Procesar cada detalle: verificar stock, crear detalle, descontar stock
+    const detallesCreados = [];
+    for (const d of detalles) {
+      const { productoID, cantidad, precioUnitario } = d;
+
+      // a) Verificar existencia y stock suficiente
+      const producto = await Producto.findByPk(productoID, { transaction: t });
+      if (!producto) {
+        throw new Error(`Producto con ID ${productoID} no existe.`);
+      }
+      if (producto.stock < cantidad) {
+        throw new Error(
+          `Stock insuficiente para producto ${productoID}. Disponible: ${producto.stock}`
+        );
+      }
+
+      // b) Crear registro de detalle de pedido
+      const detalle = await DetallePedido.create(
+        {
           pedidoID: nuevoPedido.pedidoID,
           productoID,
           cantidad,
           precioUnitario,
-        });
-      })
-    );
+        },
+        { transaction: t }
+      );
+      detallesCreados.push(detalle);
+
+      // c) Descontar stock y guardar
+      producto.stock -= cantidad;
+      await producto.save({ transaction: t });
+    }
+
+    // 3) Todo OK: confirmar transacción
+    await t.commit();
 
     return res.status(201).json({
       message: "Pedido creado correctamente",
@@ -41,8 +69,11 @@ router.post("/", authenticateToken, async (req, res) => {
       detalles: detallesCreados,
     });
   } catch (error) {
+    // En caso de error, revertir transacción
+    await t.rollback();
     console.error("Error al crear pedido:", error);
-    return res.status(500).json({ message: "Error en el servidor" });
+    const status = error.message.startsWith("Stock insuficiente") ? 400 : 500;
+    return res.status(status).json({ message: error.message });
   }
 });
 
@@ -50,7 +81,6 @@ router.post("/", authenticateToken, async (req, res) => {
 // Si el usuario es cliente, se listan solo sus pedidos; si es administrador, se listan todos.
 router.get("/", authenticateToken, async (req, res) => {
   try {
-    // Los admins ven todos, los clientes sólo sus propios pedidos
     const where =
       req.user.rol === "administrador" ? {} : { usuarioID: req.user.usuarioID };
 
@@ -87,7 +117,6 @@ router.get("/:id", authenticateToken, async (req, res) => {
     if (!pedido) {
       return res.status(404).json({ message: "Pedido no encontrado" });
     }
-    // Si el usuario es cliente, sólo puede acceder a su propio pedido.
     if (req.user.rol === "cliente" && pedido.usuarioID !== req.user.usuarioID) {
       return res.status(403).json({ message: "Acceso denegado a este pedido" });
     }

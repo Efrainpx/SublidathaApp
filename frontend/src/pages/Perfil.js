@@ -12,9 +12,11 @@ const Perfil = () => {
     nombre: "",
     apellido: "",
     email: "",
-    password: "",
     direccion: "",
     telefono: "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const [file, setFile] = useState(null);
@@ -32,9 +34,11 @@ const Perfil = () => {
           nombre: data.nombre || "",
           apellido: data.apellido || "",
           email: data.email || "",
-          password: "",
           direccion: data.direccion || "",
           telefono: data.telefono || "",
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
         });
       } catch {
         setError("No se pudo cargar el perfil");
@@ -75,6 +79,23 @@ const Perfil = () => {
   };
 
   const handleSave = async () => {
+    setError("");
+    // Si está intentando cambiar contraseña, validamos:
+    if (form.newPassword || form.confirmPassword || form.currentPassword) {
+      if (!form.currentPassword) {
+        setError("Debes ingresar tu contraseña actual");
+        return;
+      }
+      if (form.newPassword !== form.confirmPassword) {
+        setError("Las nuevas contraseñas no coinciden");
+        return;
+      }
+      if (form.newPassword.length < 8) {
+        setError("La nueva contraseña debe tener al menos 8 caracteres");
+        return;
+      }
+    }
+
     try {
       const token = localStorage.getItem("token");
       const payload = {
@@ -84,20 +105,31 @@ const Perfil = () => {
         direccion: form.direccion,
         telefono: form.telefono,
       };
-      if (form.password.trim()) payload.password = form.password;
+      if (form.newPassword) {
+        payload.currentPassword = form.currentPassword;
+        payload.newPassword = form.newPassword;
+        payload.confirmPassword = form.confirmPassword;
+      }
 
       const { data } = await api.put("/usuarios/me", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setUsuario(data);
       setEditing(false);
-      setForm((f) => ({ ...f, password: "" }));
-    } catch {
-      setError("Error al actualizar perfil");
+      // Limpiamos solo campos de contraseña
+      setForm((f) => ({
+        ...f,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }));
+    } catch (err) {
+      setError(err.response?.data?.message || "Error al actualizar perfil");
     }
   };
 
-  if (error) {
+  if (error && !usuario) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <p className="text-red-500">{error}</p>
@@ -210,15 +242,36 @@ const Perfil = () => {
                 placeholder="Teléfono"
                 className="w-full border rounded px-3 py-2"
               />
+
+              {/* Campos de cambio de contraseña */}
               <input
                 type="password"
-                name="password"
-                value={form.password}
+                name="currentPassword"
+                value={form.currentPassword}
+                onChange={handleChange}
+                placeholder="Contraseña actual"
+                className="w-full border rounded px-3 py-2"
+              />
+              <input
+                type="password"
+                name="newPassword"
+                value={form.newPassword}
                 onChange={handleChange}
                 placeholder="Nueva contraseña"
                 className="w-full border rounded px-3 py-2"
               />
+              <input
+                type="password"
+                name="confirmPassword"
+                value={form.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirmar nueva contraseña"
+                className="w-full border rounded px-3 py-2"
+              />
             </div>
+
+            {error && <p className="text-red-500 mt-2">{error}</p>}
+
             <button
               onClick={handleSave}
               className="mt-5 w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center justify-center"

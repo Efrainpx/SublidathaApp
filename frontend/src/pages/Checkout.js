@@ -7,9 +7,9 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { CartContext } from "../context/CartContext";
-import { useNavigate } from "react-router-dom";
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
@@ -25,21 +25,23 @@ const CheckoutForm = () => {
   const [succeeded, setSucceeded] = useState(false);
   const [total, setTotal] = useState(0);
 
-  // Al montar o cambiar carrito, solicitamos clientSecret
   useEffect(() => {
+    // 1) Calcular total
     const t = cartItems.reduce(
-      (sum, item) => sum + Number(item.precio) * item.quantity,
+      (sum, item) => sum + Number(item.precio) * Number(item.quantity),
       0
     );
     setTotal(t);
     setError("");
 
-    if (t < 450) {
-      setError("Para pagar necesitas al menos 450 CLP en el carrito.");
+    // 2) Validar monto mínimo en CLP
+    const MIN_CLP = 450;
+    if (t < MIN_CLP) {
+      setError(`Para pagar necesitas al menos ${MIN_CLP} CLP en el carrito.`);
       return;
     }
 
-    // Llamada para crear PaymentIntent
+    // 3) Crear PaymentIntent sólo si no hay error de mínimo
     (async () => {
       try {
         const token = localStorage.getItem("token");
@@ -50,14 +52,19 @@ const CheckoutForm = () => {
         );
         setClientSecret(data.clientSecret);
       } catch (err) {
-        setError(err.response?.data?.message || "Error al crear el pago");
+        // Captura errores de stock insuficiente u otros
+        setError(
+          err.response?.data?.message ||
+            "Error al preparar el pago, inténtalo más tarde."
+        );
       }
     })();
   }, [cartItems]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (error) return;
+    // No avanzar si hay error o falta clientSecret
+    if (error || !clientSecret) return;
     setProcessing(true);
 
     const card = elements.getElement(CardElement);
@@ -72,8 +79,8 @@ const CheckoutForm = () => {
       return;
     }
 
-    if (paymentIntent.status === "succeeded") {
-      // 1) Crear pedido en el backend
+    if (paymentIntent?.status === "succeeded") {
+      // 1) Crear pedido en backend
       try {
         const token = localStorage.getItem("token");
         await api.post(
@@ -90,14 +97,21 @@ const CheckoutForm = () => {
         // 2) Vaciar carrito y marcar éxito
         clearCart();
         setSucceeded(true);
-        // Redirigir al historial tras un delay
-        setTimeout(() => navigate("/historial-pedidos"), 1500);
+        setError("");
+
+        // 3) Redirigir a historial de pedidos después de un breve delay
+        setTimeout(() => {
+          navigate("/historial-pedidos");
+        }, 1500);
       } catch (err) {
         console.error("Error al crear pedido:", err);
         setError("Pago realizado, pero no se pudo crear el pedido.");
       } finally {
         setProcessing(false);
       }
+    } else {
+      setError("El pago no se completó correctamente.");
+      setProcessing(false);
     }
   };
 
@@ -105,13 +119,14 @@ const CheckoutForm = () => {
     <div className="max-w-md mx-auto p-6 bg-white rounded shadow mt-8">
       <h2 className="text-2xl font-semibold mb-4 text-center">Checkout</h2>
 
-      {!succeeded && error && (
+      {/* Mostrar mensajes de error (stock, Stripe, pedido) */}
+      {error && !succeeded && (
         <p className="text-red-500 mb-4 text-center">{error}</p>
       )}
 
       {succeeded ? (
         <p className="text-green-600 text-center">
-          ¡Pago y pedido realizados con éxito!
+          ¡Pago y pedido realizados con éxito! Redirigiendo…
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -122,7 +137,7 @@ const CheckoutForm = () => {
           <button
             type="submit"
             disabled={!stripe || processing}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
           >
             {processing ? "Procesando..." : `Pagar ${total.toFixed(2)} CLP`}
           </button>

@@ -13,6 +13,7 @@ import HistorialPedidos from "./pages/HistorialPedidos";
 import AdminProductos from "./pages/AdminProductos";
 import AdminPedidos from "./pages/AdminPedidos";
 import Checkout from "./pages/Checkout";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/admin/productos" element={<AdminProductos />} />
           <Route path="/admin/pedidos" element={<AdminPedidos />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
       </div>
     </Router>

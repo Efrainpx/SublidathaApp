@@ -19,11 +19,13 @@ const usuariosRoutes = require("./routes/usuarios.routes");
 const productosRoutes = require("./routes/productos.routes");
 const pedidosRoutes = require("./routes/pedidos.routes");
 const pagosRoutes = require("./routes/pagos.routes");
+const adminRoutes = require("./routes/admin.routes");
 
 app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/productos", productosRoutes);
 app.use("/api/pedidos", pedidosRoutes);
 app.use("/api/pagos", pagosRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => res.send("API SublidathaApp OK"));
 

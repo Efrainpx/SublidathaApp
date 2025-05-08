@@ -138,24 +138,58 @@ router.put("/me", authenticateToken, async (req, res) => {
     if (!usuario)
       return res.status(404).json({ message: "Usuario no encontrado" });
 
-    const { nombre, apellido, email, password, direccion, telefono } = req.body;
+    // Desestructuramos también los campos de contraseña
+    const {
+      nombre,
+      apellido,
+      email,
+      direccion,
+      telefono,
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    } = req.body;
 
+    // Si el usuario quiere cambiar su contraseña...
+    if (newPassword) {
+      // 1) Debe haber suministrado la actual
+      if (!currentPassword) {
+        return res
+          .status(400)
+          .json({ message: "Se requiere la contraseña actual" });
+      }
+      // 2) La nueva y la confirmación deben coincidir
+      if (newPassword !== confirmPassword) {
+        return res
+          .status(400)
+          .json({ message: "Las contraseñas no coinciden" });
+      }
+      // 3) Verificamos que la actual sea correcta
+      const match = await bcrypt.compare(currentPassword, usuario.password);
+      if (!match) {
+        return res
+          .status(400)
+          .json({ message: "Contraseña actual incorrecta" });
+      }
+      // 4) Si todo bien, actualizamos el hash
+      usuario.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    // Campos de perfil normales (idéntico a antes)
     if (nombre !== undefined) usuario.nombre = nombre;
     if (apellido !== undefined) usuario.apellido = apellido;
     if (email !== undefined) usuario.email = email;
     if (direccion !== undefined) usuario.direccion = direccion;
     if (telefono !== undefined) usuario.telefono = telefono;
-    if (password !== undefined && password.trim() !== "") {
-      const salt = await bcrypt.genSalt(10);
-      usuario.password = await bcrypt.hash(password, salt);
-    }
 
     await usuario.save();
-    const { password: _, ...sinPass } = usuario.toJSON();
-    res.json(sinPass);
+
+    // Devolvemos usuario sin la contraseña
+    const { password, ...sinPass } = usuario.toJSON();
+    return res.json(sinPass);
   } catch (err) {
     console.error("Error al actualizar perfil:", err);
-    res.status(500).json({ message: "Error al actualizar perfil" });
+    return res.status(500).json({ message: "Error al actualizar perfil" });
   }
 });
 
