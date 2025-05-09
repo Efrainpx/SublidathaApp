@@ -1,4 +1,3 @@
-// src/components/Navbar.js
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -26,7 +25,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo / Título */}
         <Link to="/" className="text-white text-2xl font-bold">
-          SublidathaApp
+          SublidathaPro
         </Link>
 
         {/* Botón hamburguesa - solo en móviles */}

@@ -1,4 +1,3 @@
-// backend/routes/pagos.routes.js
 const express = require("express");
 const router = express.Router();
 const Stripe = require("stripe");
@@ -15,7 +14,7 @@ router.post("/create-payment-intent", authenticateToken, async (req, res) => {
         .json({ message: "No hay productos en el carrito." });
     }
 
-    // 1) Validar stock de cada item
+    //Validar stock de cada item
     for (const item of items) {
       const productoID = item.productoID ?? item.id;
       const cantidad = Number(item.quantity ?? item.cantidad) || 0;
@@ -33,7 +32,7 @@ router.post("/create-payment-intent", authenticateToken, async (req, res) => {
       }
     }
 
-    // 2) Calcular total en CLP (sin decimales)
+    //Calcular total en CLP (sin decimales)
     const rawAmount = items.reduce((sum, item) => {
       const precio = Number(item.precio) || 0;
       const qty = Number(item.quantity ?? item.cantidad) || 0;
@@ -41,7 +40,7 @@ router.post("/create-payment-intent", authenticateToken, async (req, res) => {
     }, 0);
     const amount = Math.round(rawAmount);
 
-    // 3) Validación de monto mínimo permitido por Stripe en CLP
+    //Validación de monto mínimo permitido por Stripe en CLP
     const MIN_CLP = 450;
     if (amount < MIN_CLP) {
       return res
@@ -49,7 +48,7 @@ router.post("/create-payment-intent", authenticateToken, async (req, res) => {
         .json({ message: `El monto mínimo para pagar es ${MIN_CLP} CLP.` });
     }
 
-    // 4) Crear PaymentIntent en Stripe
+    //Crear PaymentIntent en Stripe
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "clp",

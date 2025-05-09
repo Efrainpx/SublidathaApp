@@ -1,4 +1,3 @@
-// src/pages/Perfil.js
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
 import { FiUser, FiCamera, FiEdit2, FiSave, FiX } from "react-icons/fi";

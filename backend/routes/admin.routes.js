@@ -1,4 +1,3 @@
-// backend/routes/admin.routes.js
 const express = require("express");
 const router = express.Router();
 const { Producto, DetallePedido, Pedido, sequelize } = require("../models");
@@ -11,23 +10,23 @@ router.get(
   authorizeRole("administrador"),
   async (req, res) => {
     try {
-      // 1) Existencias de inventario
+      //Existencias de inventario
       const existencias = await Producto.findAll({
         attributes: ["productoID", "nombre", "stock"],
         order: [["nombre", "ASC"]],
       });
 
-      // 2) Ventas mensuales del año actual
+      //Ventas mensuales del año actual
       const currentYear = new Date().getFullYear();
       const ventasPorMes = await DetallePedido.findAll({
         attributes: [
           [
-            // Extrae el mes de la fecha del pedido
+            //Extrae el mes de la fecha del pedido
             sequelize.fn("MONTH", sequelize.col("Pedido.fecha")),
             "mes",
           ],
           [
-            // Suma de (cantidad * precioUnitario)
+            //Suma de (cantidad * precioUnitario)
             sequelize.fn("SUM", sequelize.literal("cantidad * precioUnitario")),
             "total",
           ],

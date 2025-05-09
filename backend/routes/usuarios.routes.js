@@ -152,26 +152,26 @@ router.put("/me", authenticateToken, async (req, res) => {
 
     // Si el usuario quiere cambiar su contraseña...
     if (newPassword) {
-      // 1) Debe haber suministrado la actual
+      //Debe haber suministrado la actual
       if (!currentPassword) {
         return res
           .status(400)
           .json({ message: "Se requiere la contraseña actual" });
       }
-      // 2) La nueva y la confirmación deben coincidir
+      //La nueva y la confirmación deben coincidir
       if (newPassword !== confirmPassword) {
         return res
           .status(400)
           .json({ message: "Las contraseñas no coinciden" });
       }
-      // 3) Verificamos que la actual sea correcta
+      //Verificamos que la actual sea correcta
       const match = await bcrypt.compare(currentPassword, usuario.password);
       if (!match) {
         return res
           .status(400)
           .json({ message: "Contraseña actual incorrecta" });
       }
-      // 4) Si todo bien, actualizamos el hash
+      //Si todo bien, actualizamos el hash
       usuario.password = await bcrypt.hash(newPassword, 10);
     }
 

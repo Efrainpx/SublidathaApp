@@ -1,4 +1,3 @@
-// backend/routes/pedidos.routes.js
 const express = require("express");
 const router = express.Router();
 const {
@@ -10,7 +9,7 @@ const {
 const authenticateToken = require("../middlewares/auth");
 const authorizeRole = require("../middlewares/authorize");
 
-// Crear un pedido (El usuario autenticado crea su pedido)
+//Crear un pedido (El usuario autenticado crea su pedido)
 router.post("/", authenticateToken, async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -24,15 +23,15 @@ router.post("/", authenticateToken, async (req, res) => {
 
     const usuarioID = req.user.usuarioID;
 
-    // 1) Crear el pedido
+    //Crear el pedido
     const nuevoPedido = await Pedido.create({ usuarioID }, { transaction: t });
 
-    // 2) Procesar cada detalle: verificar stock, crear detalle, descontar stock
+    //Procesar cada detalle: verificar stock, crear detalle, descontar stock
     const detallesCreados = [];
     for (const d of detalles) {
       const { productoID, cantidad, precioUnitario } = d;
 
-      // a) Verificar existencia y stock suficiente
+      //Verificar existencia y stock suficiente
       const producto = await Producto.findByPk(productoID, { transaction: t });
       if (!producto) {
         throw new Error(`Producto con ID ${productoID} no existe.`);
@@ -43,7 +42,7 @@ router.post("/", authenticateToken, async (req, res) => {
         );
       }
 
-      // b) Crear registro de detalle de pedido
+      //Crear registro de detalle de pedido
       const detalle = await DetallePedido.create(
         {
           pedidoID: nuevoPedido.pedidoID,
@@ -55,12 +54,12 @@ router.post("/", authenticateToken, async (req, res) => {
       );
       detallesCreados.push(detalle);
 
-      // c) Descontar stock y guardar
+      //Descontar stock y guardar
       producto.stock -= cantidad;
       await producto.save({ transaction: t });
     }
 
-    // 3) Todo OK: confirmar transacción
+    //Todo OK: confirmar transacción
     await t.commit();
 
     return res.status(201).json({

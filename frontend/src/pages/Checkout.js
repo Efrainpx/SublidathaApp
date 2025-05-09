@@ -1,4 +1,3 @@
-// src/pages/Checkout.js
 import React, { useContext, useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {

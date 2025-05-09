@@ -43,7 +43,7 @@ const Usuario = sequelize.define(
   },
   {
     tableName: "Usuario",
-    timestamps: false, // Si en algún momento deseas campos de createdAt y updatedAt, puedes cambiarlo a true.
+    timestamps: false,
   }
 );
 
