@@ -95,7 +95,7 @@ const AdminPedidos = () => {
     <div className="min-h-screen bg-gray-50 px-4 py-8">
       <div className="container mx-auto">
         <h2 className="text-3xl font-bold mb-6 text-center">
-          Admin: Gestión de Pedidos
+          Gestión de Pedidos
         </h2>
         <div className="space-y-6">
           {pedidos.map((p) => {

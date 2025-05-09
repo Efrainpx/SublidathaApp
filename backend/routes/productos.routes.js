@@ -18,6 +18,13 @@ const prodStorage = multer.diskStorage({
 });
 const uploadProductImage = multer({ storage: prodStorage });
 
+/**
+ * @swagger
+ * tags:
+ *   - name: Productos
+ *     description: Gestión de productos
+ */
+
 //Endpoint para crear producto con imagen
 router.post(
   "/",
@@ -45,6 +52,46 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/productos/{id}/imagen:
+ *   put:
+ *     summary: Actualizar solo la imagen de un producto (solo administradores)
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID del producto
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               imagen:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Imagen actualizada correctamente
+ *       400:
+ *         description: Imagen faltante o inválida
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Acceso prohibido
+ *       404:
+ *         description: Producto no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 //Endpoint para actualizar sólo la imagen de un producto
 router.put(
   "/:id/imagen",
@@ -71,6 +118,23 @@ router.put(
   }
 );
 
+/**
+ * @swagger
+ * /api/productos:
+ *   get:
+ *     summary: Listar todos los productos (público)
+ *     tags: [Productos]
+ *     responses:
+ *       200:
+ *         description: Lista de productos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Producto'
+ */
+
 // Endpoint para listar todos los productos
 router.get("/", async (req, res) => {
   try {
@@ -81,6 +145,34 @@ router.get("/", async (req, res) => {
     return res.status(500).json({ message: "Error en el servidor" });
   }
 });
+
+/**
+ * @swagger
+ * /api/productos/{id}:
+ *   get:
+ *     summary: Obtener detalles de un producto
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID del producto
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Detalle del producto
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Producto'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Producto no encontrado
+ */
 
 // Endpoint para obtener los detalles de un producto por su ID
 router.get("/:id", async (req, res) => {
@@ -94,6 +186,53 @@ router.get("/:id", async (req, res) => {
     return res.status(500).json({ message: "Error en el servidor" });
   }
 });
+
+/**
+ * @swagger
+ * /api/productos:
+ *   post:
+ *     summary: Crear un nuevo producto (solo administradores)
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nombre
+ *               - precio
+ *               - stock
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               descripcion:
+ *                 type: string
+ *               precio:
+ *                 type: number
+ *               stock:
+ *                 type: integer
+ *               imagen:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Producto creado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Producto'
+ *       400:
+ *         description: Datos faltantes o inválidos
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Acceso prohibido
+ *       500:
+ *         description: Error interno del servidor
+ */
 
 // Endpoint para agregar un nuevo producto (solo para administradores)
 router.post(
@@ -127,6 +266,58 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/productos/{id}:
+ *   put:
+ *     summary: Actualizar un producto completo (solo administradores)
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID del producto a actualizar
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               descripcion:
+ *                 type: string
+ *               precio:
+ *                 type: number
+ *               stock:
+ *                 type: integer
+ *               imagen:
+ *                 type: string
+ *                 format: uri
+ *     responses:
+ *       200:
+ *         description: Producto actualizado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Producto'
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Acceso prohibido
+ *       404:
+ *         description: Producto no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 // Endpoint para actualizar un producto (solo para administradores)
 router.put(
   "/:id",
@@ -156,6 +347,34 @@ router.put(
     }
   }
 );
+
+/**
+ * @swagger
+ * /api/productos/{id}:
+ *   delete:
+ *     summary: Eliminar un producto (solo administradores)
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID del producto a eliminar
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Producto eliminado correctamente
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Acceso prohibido
+ *       404:
+ *         description: Producto no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
 
 // Endpoint para eliminar un producto (solo para administradores)
 router.delete(

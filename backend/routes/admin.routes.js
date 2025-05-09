@@ -4,6 +4,38 @@ const { Producto, DetallePedido, Pedido, sequelize } = require("../models");
 const authenticateToken = require("../middlewares/auth");
 const authorizeRole = require("../middlewares/authorize");
 
+/**
+ * @swagger
+ * /api/admin/dashboard:
+ *   get:
+ *     summary: Obtener datos del dashboard de administrador
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Existencias de inventario y ventas mensuales
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 existencias:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ProductoExistencia'
+ *                 ventasPorMes:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/VentasPorMes'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 router.get(
   "/dashboard",
   authenticateToken,

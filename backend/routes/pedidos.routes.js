@@ -1,13 +1,90 @@
 const express = require("express");
 const router = express.Router();
-const {
-  Pedido,
-  DetallePedido,
-  Producto,
-  sequelize, // importamos la instancia para transacciones
-} = require("../models");
+const { Pedido, DetallePedido, Producto, sequelize } = require("../models");
 const authenticateToken = require("../middlewares/auth");
 const authorizeRole = require("../middlewares/authorize");
+
+/**
+ * @swagger
+ * tags:
+ *   name: Pedidos
+ *   description: Gestión de pedidos
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     DetallePedido:
+ *       type: object
+ *       properties:
+ *         productoID:
+ *           type: integer
+ *         cantidad:
+ *           type: integer
+ *         precioUnitario:
+ *           type: number
+ *           format: float
+ *     Pedido:
+ *       type: object
+ *       properties:
+ *         pedidoID:
+ *           type: integer
+ *         usuarioID:
+ *           type: integer
+ *         fecha:
+ *           type: string
+ *           format: date-time
+ *         estado:
+ *           type: string
+ *         DetallePedidos:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/DetallePedido'
+ */
+
+/**
+ * @swagger
+ * /api/pedidos:
+ *   post:
+ *     summary: Crea un nuevo pedido para el usuario autenticado
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               detalles:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/DetallePedido'
+ *             required:
+ *               - detalles
+ *     responses:
+ *       201:
+ *         description: Pedido creado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 pedido:
+ *                   $ref: '#/components/schemas/Pedido'
+ *                 detalles:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/DetallePedido'
+ *       400:
+ *         description: Se requieren detalles del pedido o stock insuficiente
+ *       500:
+ *         description: Error en el servidor
+ */
 
 //Crear un pedido (El usuario autenticado crea su pedido)
 router.post("/", authenticateToken, async (req, res) => {
@@ -76,6 +153,27 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/pedidos:
+ *   get:
+ *     summary: Lista todos los pedidos (admins) o los del usuario (clientes)
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de pedidos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Pedido'
+ *       500:
+ *         description: Error en el servidor
+ */
+
 // Listar pedidos
 // Si el usuario es cliente, se listan solo sus pedidos; si es administrador, se listan todos.
 router.get("/", authenticateToken, async (req, res) => {
@@ -101,6 +199,36 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/pedidos/{id}:
+ *   get:
+ *     summary: Obtiene un pedido por su ID
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del pedido
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Detalles del pedido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Pedido'
+ *       403:
+ *         description: Acceso denegado al pedido
+ *       404:
+ *         description: Pedido no encontrado
+ *       500:
+ *         description: Error en el servidor
+ */
+
 // Obtener los detalles de un pedido específico
 router.get("/:id", authenticateToken, async (req, res) => {
   try {
@@ -125,6 +253,54 @@ router.get("/:id", authenticateToken, async (req, res) => {
     return res.status(500).json({ message: "Error en el servidor" });
   }
 });
+
+/**
+ * @swagger
+ * /api/pedidos/{id}:
+ *   put:
+ *     summary: Actualiza el estado de un pedido (solo admins)
+ *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del pedido
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               estado:
+ *                 type: string
+ *             required:
+ *               - estado
+ *     responses:
+ *       200:
+ *         description: Estado actualizado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 pedido:
+ *                   $ref: '#/components/schemas/Pedido'
+ *       400:
+ *         description: El estado es requerido
+ *       403:
+ *         description: Rol no autorizado
+ *       404:
+ *         description: Pedido no encontrado
+ *       500:
+ *         description: Error en el servidor
+ */
 
 // Actualizar el estado de un pedido (solo para administradores)
 router.put(

@@ -5,6 +5,64 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const { Producto } = require("../models"); // <-- Importar modelo de Producto
 const authenticateToken = require("../middlewares/auth");
 
+/**
+ * @swagger
+ * tags:
+ *   - name: Pagos
+ *     description: Procesamiento de pagos con Stripe
+ */
+
+/**
+ * @swagger
+ * /api/pagos/create-payment-intent:
+ *   post:
+ *     summary: Crea un PaymentIntent en Stripe y devuelve el clientSecret
+ *     tags: [Pagos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - items
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 description: Lista de artículos a pagar
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - productoID
+ *                     - quantity
+ *                     - precioUnitario
+ *                   properties:
+ *                     productoID:
+ *                       type: integer
+ *                     quantity:
+ *                       type: integer
+ *                     precioUnitario:
+ *                       type: number
+ *     responses:
+ *       200:
+ *         description: ClientSecret generado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 clientSecret:
+ *                   type: string
+ *       400:
+ *         description: Parámetros inválidos o monto insuficiente
+ *       402:
+ *         description: Error en el procesamiento de Stripe
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.post("/create-payment-intent", authenticateToken, async (req, res) => {
   try {
     const items = Array.isArray(req.body.items) ? req.body.items : [];

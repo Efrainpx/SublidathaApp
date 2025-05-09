@@ -17,6 +17,44 @@ const avatarStorage = multer.diskStorage({
 });
 const uploadAvatar = multer({ storage: avatarStorage });
 
+/**
+ * @swagger
+ * tags:
+ *   - name: Usuarios
+ *     description: Registro, login y perfil de usuarios
+ */
+
+/**
+ * @swagger
+ * /api/usuarios/me/avatar:
+ *   post:
+ *     summary: Actualiza el avatar del usuario autenticado
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Avatar actualizado correctamente
+ *       400:
+ *         description: Avatar faltante
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 //Endpoint para subir avatar
 router.post(
   "/me/avatar",
@@ -44,6 +82,48 @@ router.post(
     }
   }
 );
+
+/**
+ * @swagger
+ * /api/usuarios/register:
+ *   post:
+ *     summary: Registra un nuevo usuario
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nombre
+ *               - apellido
+ *               - email
+ *               - password
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               apellido:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *               direccion:
+ *                 type: string
+ *               telefono:
+ *                 type: string
+ *               rol:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Usuario creado correctamente
+ *       400:
+ *         description: Datos faltantes o email ya registrado
+ *       500:
+ *         description: Error interno del servidor
+ */
 
 // Endpoint para registrar un nuevo usuario
 router.post("/register", async (req, res) => {
@@ -75,6 +155,44 @@ router.post("/register", async (req, res) => {
     return res.status(500).json({ message: "Error en el servidor" });
   }
 });
+
+/**
+ * @swagger
+ * /api/usuarios/login:
+ *   post:
+ *     summary: Inicia sesión y recibe un JWT
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login exitoso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 usuario:
+ *                   $ref: '#/components/schemas/Usuario'
+ *       400:
+ *         description: Credenciales incorrectas
+ *       500:
+ *         description: Error interno del servidor
+ */
 
 // Endpoint para iniciar sesión
 router.post("/login", async (req, res) => {
@@ -116,6 +234,29 @@ router.post("/login", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/usuarios/me:
+ *   get:
+ *     summary: Obtiene perfil del usuario autenticado
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Perfil de usuario
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Usuario'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 // Endpoint para obtener datos del usuario logueado
 router.get("/me", authenticateToken, async (req, res) => {
   try {
@@ -130,6 +271,42 @@ router.get("/me", authenticateToken, async (req, res) => {
     return res.status(500).json({ message: "Error en el servidor" });
   }
 });
+
+/**
+ * @swagger
+ * /api/usuarios/me:
+ *   put:
+ *     summary: Actualiza perfil del usuario autenticado (incluye cambio de contraseña)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             allOf:
+ *               - $ref: '#/components/schemas/Usuario'
+ *               - type: object
+ *                 properties:
+ *                   currentPassword:
+ *                     type: string
+ *                   newPassword:
+ *                     type: string
+ *                   confirmPassword:
+ *                     type: string
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado correctamente
+ *       400:
+ *         description: Validación fallida
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
 
 //Endpoint para actualizar datos del Usuario
 router.put("/me", authenticateToken, async (req, res) => {

@@ -20,15 +20,28 @@ const productosRoutes = require("./routes/productos.routes");
 const pedidosRoutes = require("./routes/pedidos.routes");
 const pagosRoutes = require("./routes/pagos.routes");
 const adminRoutes = require("./routes/admin.routes");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./config/swagger");
 
 app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/productos", productosRoutes);
 app.use("/api/pedidos", pedidosRoutes);
 app.use("/api/pagos", pagosRoutes);
 app.use("/api/admin", adminRoutes);
+app.use(
+  "/api/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, { explorer: true })
+);
 
 app.get("/", (req, res) => res.send("API SublidathaApp OK"));
 
-sequelize.sync().then(() => {
-  app.listen(port, () => console.log(`Servidor en puerto ${port}`));
-});
+if (process.env.NODE_ENV !== "test") {
+  sequelize.sync().then(() => {
+    app.listen(port, () => {
+      console.log(`Servidor en puerto ${port}`);
+    });
+  });
+}
+
+module.exports = app;

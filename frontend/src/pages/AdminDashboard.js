@@ -81,9 +81,7 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="container mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">
-          Panel de Control Admin
-        </h1>
+        <h1 className="text-3xl font-bold mb-8 text-center">Panel de Ventas</h1>
 
         {/* Existencias */}
         <section className="mb-12">
