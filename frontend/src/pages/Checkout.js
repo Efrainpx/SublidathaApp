@@ -25,7 +25,7 @@ const CheckoutForm = () => {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    // 1) Calcular total
+    // Calcular total
     const t = cartItems.reduce(
       (sum, item) => sum + Number(item.precio) * Number(item.quantity),
       0
@@ -33,14 +33,14 @@ const CheckoutForm = () => {
     setTotal(t);
     setError("");
 
-    // 2) Validar monto mínimo en CLP
+    // Validar monto mínimo en CLP
     const MIN_CLP = 450;
     if (t < MIN_CLP) {
       setError(`Para pagar necesitas al menos ${MIN_CLP} CLP en el carrito.`);
       return;
     }
 
-    // 3) Crear PaymentIntent sólo si no hay error de mínimo
+    // Crear PaymentIntent sólo si no hay error de mínimo
     (async () => {
       try {
         const token = localStorage.getItem("token");
@@ -79,7 +79,7 @@ const CheckoutForm = () => {
     }
 
     if (paymentIntent?.status === "succeeded") {
-      // 1) Crear pedido en backend
+      // Crear pedido en backend
       try {
         const token = localStorage.getItem("token");
         await api.post(
@@ -93,12 +93,12 @@ const CheckoutForm = () => {
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        // 2) Vaciar carrito y marcar éxito
+        // Vaciar carrito y marcar éxito
         clearCart();
         setSucceeded(true);
         setError("");
 
-        // 3) Redirigir a historial de pedidos después de un breve delay
+        // Redirigir a historial de pedidos después de un breve delay
         setTimeout(() => {
           navigate("/historial-pedidos");
         }, 1500);

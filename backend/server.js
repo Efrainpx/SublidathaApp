@@ -11,10 +11,10 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// 1) Sirve archivos estáticos de la carpeta uploads
+// Sirve archivos estáticos de la carpeta uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// 2) Rutas
+// Rutas
 const usuariosRoutes = require("./routes/usuarios.routes");
 const productosRoutes = require("./routes/productos.routes");
 const pedidosRoutes = require("./routes/pedidos.routes");
