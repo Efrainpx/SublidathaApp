@@ -18,9 +18,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // limpiar token y enviar al login
       localStorage.removeItem("token");
-      // opcional: si guardas usuario en contexto, límpialo también
       window.location.href = "/login";
     }
     return Promise.reject(error);
