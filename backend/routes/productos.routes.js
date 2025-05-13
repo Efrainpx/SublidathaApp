@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
-const { Producto } = require("../models");
+const { Producto, DetallePedido } = require("../models");
 // Importar middlewares de autenticación y autorización
 const authenticateToken = require("../middlewares/auth");
 const authorizeRole = require("../middlewares/authorize");
