@@ -377,8 +377,6 @@ router.put(
  */
 
 // Endpoint para eliminar un producto (solo para administradores)
-const { Producto, DetallePedido } = require("../models");
-
 router.delete(
   "/:id",
   authenticateToken,
