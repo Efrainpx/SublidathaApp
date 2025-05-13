@@ -7,11 +7,11 @@ const { sequelize } = require("./models");
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Habilita CORS y JSON
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Sirve archivos estáticos de la carpeta uploads
+// Archivos estáticos
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Rutas
@@ -36,11 +36,18 @@ app.use(
 
 app.get("/", (req, res) => res.send("API SublidathaApp OK"));
 
-if (process.env.NODE_ENV !== "test") {
+// Solo en desarrollo sincronizamos tablas antes de arrancar
+if (process.env.NODE_ENV === "development") {
   sequelize.sync().then(() => {
     app.listen(port, () => {
-      console.log(`Servidor en puerto ${port}`);
+      console.log(`Servidor DEV en puerto ${port}`);
     });
+  });
+}
+// En producción (y cualquier otro entorno distinto de test), arrancamos sin sync
+else if (process.env.NODE_ENV !== "test") {
+  app.listen(port, () => {
+    console.log(`Servidor en puerto ${port}`);
   });
 }
 
