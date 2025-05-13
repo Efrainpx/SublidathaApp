@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: "https://sublidathaapp.onrender.com/api",
 });
 
 // Request interceptor: adjunta el token en cada petición
