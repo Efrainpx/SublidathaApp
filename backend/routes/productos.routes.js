@@ -377,18 +377,35 @@ router.put(
  */
 
 // Endpoint para eliminar un producto (solo para administradores)
+const { Producto, DetallePedido } = require("../models");
+
 router.delete(
   "/:id",
   authenticateToken,
   authorizeRole("administrador"),
   async (req, res) => {
+    const productoID = parseInt(req.params.id, 10);
+
     try {
-      const producto = await Producto.findByPk(req.params.id);
+      // Comprueba que el producto existe
+      const producto = await Producto.findByPk(productoID);
       if (!producto) {
         return res.status(404).json({ message: "Producto no encontrado" });
       }
-      await producto.destroy();
-      return res.json({ message: "Producto eliminado correctamente" });
+
+      // Elimina primero todos los detalles de pedido que referencien este producto
+      await DetallePedido.destroy({
+        where: { productoID },
+      });
+
+      // Ahora elimina el producto
+      await Producto.destroy({
+        where: { productoID },
+      });
+
+      return res.json({
+        message: "Producto y sus detalles eliminados correctamente",
+      });
     } catch (error) {
       console.error("Error al eliminar producto:", error);
       return res.status(500).json({ message: "Error en el servidor" });
