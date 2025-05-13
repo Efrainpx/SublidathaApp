@@ -4,20 +4,20 @@ const { Sequelize } = require("sequelize");
 let sequelize;
 
 if (process.env.NODE_ENV === "test") {
-  // SQLite en memoria para test
+  // SQLite en memoria para tests
   sequelize = new Sequelize({
     dialect: "sqlite",
     storage: ":memory:",
-    logging: false, // silencia logs en tests
+    logging: false,
   });
 } else {
-  // Conexion real a base de datos
+  // Conexión real a base de datos MySQL en FreeSQLDatabase.com
   sequelize = new Sequelize(
-    process.env.DB_NAME || "SublidathaDB",
-    process.env.DB_USER || "root",
-    process.env.DB_PASS || "26996052",
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASSWORD,
     {
-      host: process.env.DB_HOST || "localhost",
+      host: process.env.DB_HOST,
       port: process.env.DB_PORT || 3306,
       dialect: "mysql",
       logging: false,

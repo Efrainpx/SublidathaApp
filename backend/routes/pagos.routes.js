@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Stripe = require("stripe");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-const { Producto } = require("../models"); // <-- Importar modelo de Producto
+const { Producto } = require("../models");
 const authenticateToken = require("../middlewares/auth");
 
 /**
